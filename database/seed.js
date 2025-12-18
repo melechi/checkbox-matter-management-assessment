@@ -21,6 +21,14 @@ async function seed() {
   
   try {
     console.log('Starting seed process...');
+
+    // Has the database already been seeded?
+    console.log('Checking if seeding has already completed...');
+    const existing = await client.query('SELECT COUNT(*) FROM accounts');
+    if (existing.rows[0].count > 0) {
+      console.log('Database already seeded, skipping...');
+      return;
+    }
     
     // Create account
     console.log('Creating account...');
