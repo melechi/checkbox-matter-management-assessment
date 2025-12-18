@@ -4,6 +4,7 @@ import {
   formatDate,
   formatBoolean,
   getStatusBadgeColor,
+  getSLABadgeColor
 } from '../utils/formatting';
 
 interface MatterTableProps {
@@ -12,6 +13,19 @@ interface MatterTableProps {
   sortOrder: 'asc' | 'desc';
   onSort: (column: string) => void;
 }
+
+const FIELD_NAMES = {
+  SUBJECT: 'subject',
+  CASE_NUMBER: 'Case Number',
+  STATUS: 'Status',
+  ASSIGNED_TO: 'Assigned To',
+  PRIORITY: 'Priority',
+  CONTRACT_VALUE: 'Contract Value',
+  DUE_DATE: 'Due Date',
+  URGENT: 'Urgent',
+  RESOLUTION_TIME: 'Resolution Time',
+  SLA: 'SLA',
+} as const;
 
 export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableProps) {
   const renderSortIcon = (column: string) => {
@@ -62,7 +76,6 @@ export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableP
             {field.displayValue}
           </span>
         );
-      
       case 'user':
         return <span>{field.displayValue}</span>;
       
@@ -70,6 +83,21 @@ export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableP
         return <span>{field.displayValue || String(field.value) || 'N/A'}</span>;
     }
   };
+
+  const renderCycleTime = (matter:Matter) => {
+    return matter.cycleTime?.resolutionTimeFormatted || 'Unknown';
+  }
+
+  const renderSLA = (matter:Matter) => {
+    const sla = matter.sla || 'Unknown';
+    return (
+      <span
+        className={`px-2 py-1 text-xs font-semibold rounded-full ${getSLABadgeColor(sla)}`}
+      >
+        {sla}
+      </span>
+    );
+  }
 
   if (matters.length === 0) {
     return (
@@ -103,38 +131,36 @@ export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableP
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
             >
               <div className="flex items-center gap-1">
-                Subject
+                {FIELD_NAMES.SUBJECT}
                 {renderSortIcon('subject')}
               </div>
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Case Number
+              {FIELD_NAMES.CASE_NUMBER}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+              {FIELD_NAMES.STATUS}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Assigned To
+              {FIELD_NAMES.ASSIGNED_TO}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Priority
+              {FIELD_NAMES.PRIORITY}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Contract Value
+              {FIELD_NAMES.CONTRACT_VALUE}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Due Date
+              {FIELD_NAMES.DUE_DATE}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Urgent
+              {FIELD_NAMES.URGENT}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Resolution Time
-              <span className="text-xs text-orange-600 ml-2">(TODO)</span>
+              {FIELD_NAMES.RESOLUTION_TIME}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              SLA
-              <span className="text-xs text-orange-600 ml-2">(TODO)</span>
+              {FIELD_NAMES.SLA}
             </th>
           </tr>
         </thead>
@@ -143,39 +169,36 @@ export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableP
             <tr key={matter.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
-                  {renderFieldValue(matter, 'subject')}
+                  {renderFieldValue(matter, FIELD_NAMES.SUBJECT)}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {renderFieldValue(matter, 'Case Number')}
+                {renderFieldValue(matter, FIELD_NAMES.CASE_NUMBER)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {renderFieldValue(matter, 'Status')}
+                {renderFieldValue(matter, FIELD_NAMES.STATUS)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {renderFieldValue(matter, 'Assigned To')}
+                {renderFieldValue(matter, FIELD_NAMES.ASSIGNED_TO)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {renderFieldValue(matter, 'Priority')}
+                {renderFieldValue(matter, FIELD_NAMES.PRIORITY)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {renderFieldValue(matter, 'Contract Value')}
+                {renderFieldValue(matter, FIELD_NAMES.CONTRACT_VALUE)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {renderFieldValue(matter, 'Due Date')}
+                {renderFieldValue(matter, FIELD_NAMES.DUE_DATE)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                {renderFieldValue(matter, 'Urgent')}
+                {renderFieldValue(matter, FIELD_NAMES.URGENT)}
               </td>
+              {/* The following are not "Fields" but are returned by the API and need formatting for display. */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                {/* TODO: Display formatted resolution time (e.g., "2h 30m", "3d 5h") */}
-                <span className="italic">Not implemented</span>
+                {renderCycleTime(matter)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {/* TODO: Display SLA badge (In Progress/Met/Breached) with appropriate colors */}
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500 italic">
-                  Not implemented
-                </span>
+                {renderSLA(matter)}
               </td>
             </tr>
           ))}
