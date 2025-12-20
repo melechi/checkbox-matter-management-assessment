@@ -1,5 +1,7 @@
 import { config } from '../../../utils/config.js';
-import { SLAStatus, CycleTime } from '../../types.js';
+import { SLAStatus, SLA_STATUS_NAMES, CycleTime, MatterStatusGroupName, MATTER_STATUS_GROUP_NAME, Matter } from '../../types.js';
+import pool from '../../../db/pool.js';
+import { formatDuration, intervalToDuration } from 'date-fns';
 
 /**
  * CycleTimeService - Calculate resolution times and SLA status for matters
@@ -35,31 +37,99 @@ export class CycleTimeService {
   }
 
   async calculateCycleTimeAndSLA(
-    _ticketId: string,
-    _currentStatusGroupName: string | null,
+    _matter: Matter,
+    _currentStatusGroupName:MatterStatusGroupName | null,
   ): Promise<{ cycleTime: CycleTime; sla: SLAStatus }> {
-    // TODO: Implement cycle time calculation
-    // See requirements in class documentation above
-    
-    // Placeholder return - replace with actual implementation
-    return {
-      cycleTime: {
+      let cycleTime:CycleTime = {
         resolutionTimeMs: null,
         resolutionTimeFormatted: 'N/A',
-        isInProgress: false,
+        isInProgress: true,
         startedAt: null,
         completedAt: null,
-      },
-      sla: 'In Progress',
+      }
+      let sla:SLAStatus = SLA_STATUS_NAMES.IN_PROGRESS;
+
+      // If we don't have transition times. Return the above defaults.
+      if (!_matter.transitionedFirst || !_matter.transitionedLast) {
+        return { cycleTime, sla };
+      }
+      
+      let first = _matter.transitionedFirst.getTime();
+      let last = _matter.transitionedLast.getTime();
+
+      // If first and last are the same, then there is only transition record.
+      // Note that this SHOULD always be the case for a "To Do" status.
+      // Additionally, If we're in the "In Progress" group, then the last time needs to now so that
+      // the correct passed time is displayed.
+      if (first === last
+        || _currentStatusGroupName == MATTER_STATUS_GROUP_NAME.IN_PROGRESS
+      ) {
+        last = Date.now();
+      }
+
+      const isInProgress = _currentStatusGroupName == MATTER_STATUS_GROUP_NAME.IN_PROGRESS;
+      const resolutionTimeMs = last - first;
+
+      cycleTime = {
+        resolutionTimeMs,
+        resolutionTimeFormatted: this._formatDuration(resolutionTimeMs,isInProgress),
+        isInProgress: isInProgress,
+        startedAt: new Date(first),
+        completedAt: (_currentStatusGroupName == MATTER_STATUS_GROUP_NAME.DONE)?new Date(last):null
+      }
+
+      sla = this._formatSLAResponse(_currentStatusGroupName, resolutionTimeMs)
+
+    return {
+      cycleTime,
+      sla
     };
   }
 
   // Helper method for formatting durations (candidates will implement this)
-  private _formatDuration(_durationMs: number, _isInProgress: boolean): string {
-    // TODO: Implement duration formatting
-    // Format as "2h 30m", "3d 5h", etc.
-    // Prefix with "In Progress: " if matter is not complete
-    return 'N/A';
+  protected _formatDuration(_durationMs: number, _isInProgress: boolean): string {
+    // Create a locale for the date-fns lib to modify "days" to "d" etc.
+    const shortFormat: Locale = {
+      formatDistance: (token, count) => {
+        const units: Record<string, string> = {
+          xYears: 'y',
+          xDays: 'd',
+          xHours: 'h',
+          xMinutes: 'm',
+          xSeconds: 's',
+        };
+        return `${count}${units[token] || ''}`;
+      },
+    };
+
+    // Output the duration with the custom locale.
+    const duration = intervalToDuration({ start: 0, end: _durationMs });
+    const formatted = formatDuration(duration, {
+      format: ['years', 'days', 'hours', 'minutes'],
+      locale: shortFormat
+    });
+    return _isInProgress && _durationMs >= 60000 ?`In Progress: ${formatted}`:formatted;
+  }
+
+  /*
+  * SLA Status Logic:
+  * - "In Progress": Matter not yet in "Done" status
+  * - "Met": Resolved within threshold (≤ 8 hours)
+  * - "Breached": Resolved after threshold (> 8 hours)
+  */
+  protected _formatSLAResponse(_currentStatusGroupName: MatterStatusGroupName | null, _resolutionTimeMs: number):SLAStatus {
+    switch (_currentStatusGroupName) {
+      case MATTER_STATUS_GROUP_NAME.TODO: return SLA_STATUS_NAMES.IN_PROGRESS;
+      case MATTER_STATUS_GROUP_NAME.IN_PROGRESS: return SLA_STATUS_NAMES.IN_PROGRESS;
+      //For this case, we need the _resolutionTimeMs to check for breached.
+      case MATTER_STATUS_GROUP_NAME.DONE: {
+        if (_resolutionTimeMs <= this._slaThresholdMs) {
+          return SLA_STATUS_NAMES.MET;
+        }
+        return SLA_STATUS_NAMES.BREACHED;
+      }
+      default: return SLA_STATUS_NAMES.IN_PROGRESS;
+    }
   }
 }
 

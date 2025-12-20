@@ -6,6 +6,8 @@ export interface Matter {
   sla?: SLAStatus;
   createdAt: string;
   updatedAt: string;
+  transitionedFirst: Date,
+  transitionedLast: Date
 }
 
 export interface FieldValue {
@@ -44,7 +46,21 @@ export interface CycleTime {
   completedAt: Date | null;
 }
 
-export type SLAStatus = 'In Progress' | 'Met' | 'Breached';
+export const SLA_STATUS_NAMES = {
+  IN_PROGRESS: 'In Progress',
+  MET: 'Met',
+  BREACHED: 'Breached'
+} as const;
+
+export type SLAStatus = typeof SLA_STATUS_NAMES[keyof typeof SLA_STATUS_NAMES];
+
+export const MATTER_STATUS_GROUP_NAME = {
+  TODO: 'To Do',
+  IN_PROGRESS: 'In Progress',
+  DONE: 'Done'
+} as const;
+
+export type MatterStatusGroupName = typeof MATTER_STATUS_GROUP_NAME[keyof typeof MATTER_STATUS_GROUP_NAME];
 
 export interface MatterListParams {
   page?: number;
