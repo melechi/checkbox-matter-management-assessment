@@ -60,7 +60,19 @@ export class MatterRepo {
 
       // Get matters
       const mattersQuery = `
-        SELECT DISTINCT tt.id, tt.board_id, tt.created_at, tt.updated_at
+        SELECT DISTINCT tt.id, tt.board_id, tt.created_at, tt.updated_at,
+          (   SELECT tcth.transitioned_at
+            FROM ticketing_cycle_time_histories AS tcth
+            WHERE ticket_id = tt.id
+            ORDER BY transitioned_at ASC
+            LIMIT 1
+          ) AS first_transitioned,
+          (   SELECT tcth.transitioned_at
+            FROM ticketing_cycle_time_histories AS tcth
+            WHERE ticket_id = tt.id
+            ORDER BY transitioned_at DESC
+            LIMIT 1
+          ) AS last_transitioned
         FROM ticketing_ticket tt
         LEFT JOIN ticketing_ticket_field_value ttfv ON tt.id = ttfv.ticket_id
         WHERE 1=1 ${searchCondition}
@@ -83,6 +95,8 @@ export class MatterRepo {
           fields,
           createdAt: matterRow.created_at,
           updatedAt: matterRow.updated_at,
+          transitionedFirst: matterRow.first_transitioned,
+          transitionedLast: matterRow.last_transitioned
         });
       }
 

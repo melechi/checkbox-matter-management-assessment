@@ -27,7 +27,7 @@ export class MatterService {
         }
 
         const { cycleTime, sla } = await this.cycleTimeService.calculateCycleTimeAndSLA(
-          matter.id,
+          matter,
           statusGroupName,
         );
 

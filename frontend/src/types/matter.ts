@@ -44,7 +44,7 @@ export interface CycleTime {
   completedAt: string | null;
 }
 
-export type SLAStatus = 'In Progress' | 'Met' | 'Breached';
+export type SLAStatus = 'In Progress' | 'Met' | 'Breached' | 'Unknown';
 
 export interface MatterListResponse {
   data: Matter[];
