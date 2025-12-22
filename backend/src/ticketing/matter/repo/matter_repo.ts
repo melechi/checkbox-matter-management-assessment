@@ -250,7 +250,19 @@ export class MatterRepo {
 
     try {
       const matterResult = await client.query(
-        `SELECT id, board_id, created_at, updated_at
+        `SELECT id, board_id, created_at, updated_at,
+          (SELECT tcth.transitioned_at
+            FROM ticketing_cycle_time_histories AS tcth
+            WHERE ticket_id = ticketing_ticket.id
+            ORDER BY transitioned_at ASC
+            LIMIT 1
+          ) AS first_transitioned,
+          (SELECT tcth.transitioned_at
+            FROM ticketing_cycle_time_histories AS tcth
+            WHERE ticket_id = ticketing_ticket.id
+            ORDER BY transitioned_at DESC
+            LIMIT 1
+          ) AS last_transitioned
          FROM ticketing_ticket
          WHERE id = $1`,
         [matterId],
@@ -269,6 +281,8 @@ export class MatterRepo {
         fields,
         createdAt: matterRow.created_at,
         updatedAt: matterRow.updated_at,
+        transitionedFirst: matterRow.first_transitioned,
+        transitionedLast: matterRow.last_transitioned,
       };
     } finally {
       client.release();
