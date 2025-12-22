@@ -1,5 +1,5 @@
 import pool from '../../../db/pool.js';
-import { Matter, MatterListParams, FieldValue, UserValue, CurrencyValue, StatusValue, FIELD_TYPE_NAME } from '../../types.js';
+import { Matter, MatterListParams, FieldValue, UserValue, CurrencyValue, StatusValue } from '../../types.js';
 import logger from '../../../utils/logger.js';
 import { PoolClient } from 'pg';
 
@@ -58,9 +58,6 @@ export class MatterRepo {
         countQueryParams.push(term);
       }
 
-      console.log('searchCondition',searchCondition);
-      
-      
       let _sortType = sortType;
       if (sortBy === 'created_at') {
         _sortType ='created_at';
@@ -118,8 +115,6 @@ export class MatterRepo {
         LIMIT $${++paramIndex} OFFSET $${++paramIndex}
       `;
 
-      console.log('mattersQuery',mattersQuery);
-      
       queryParams.push(limit, offset);
       const mattersResult = await client.query(mattersQuery, queryParams);
 

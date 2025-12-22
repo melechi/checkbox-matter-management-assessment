@@ -1,6 +1,5 @@
 import { config } from '../../../utils/config.js';
 import { SLAStatus, SLA_STATUS_NAMES, CycleTime, MatterStatusGroupName, MATTER_STATUS_GROUP_NAME, Matter } from '../../types.js';
-import pool from '../../../db/pool.js';
 import { formatDuration, intervalToDuration } from 'date-fns';
 
 /**
@@ -54,7 +53,7 @@ export class CycleTimeService {
         return { cycleTime, sla };
       }
       
-      let first = _matter.transitionedFirst.getTime();
+      const first = _matter.transitionedFirst.getTime();
       let last = _matter.transitionedLast.getTime();
 
       // If first and last are the same, then there is only transition record.
@@ -88,9 +87,9 @@ export class CycleTimeService {
 
   // Helper method for formatting durations (candidates will implement this)
   protected _formatDuration(_durationMs: number, _isInProgress: boolean): string {
-    // Create a locale for the date-fns lib to modify "days" to "d" etc.
-    const shortFormat: Locale = {
-      formatDistance: (token, count) => {
+    // Create a partial locale for the date-fns lib to modify "days" to "d" etc.
+    const shortFormat = {
+      formatDistance: (token: string, count: number): string => {
         const units: Record<string, string> = {
           xYears: 'y',
           xDays: 'd',
