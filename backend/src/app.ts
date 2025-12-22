@@ -100,7 +100,12 @@ async function startServer() {
   }
 }
 
-startServer();
+// Only start server if this file is run directly (not imported for testing)
+// In ESM, we check if the module URL matches the main entry point
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  startServer();
+}
 
 export default app;
 
