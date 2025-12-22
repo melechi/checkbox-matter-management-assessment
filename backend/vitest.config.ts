@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     env: {
-      DATABASE_URL: 'postgres://test:test@localhost:5432/test_db',
+      DATABASE_URL: 'postgres://matter:matter@localhost:5432/matter_db',
       SLA_THRESHOLD_HOURS: '8'
     },
     coverage: {
