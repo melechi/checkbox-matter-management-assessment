@@ -7,6 +7,7 @@ interface UseMatterParams {
   page: number;
   limit: number;
   sortBy: string;
+  sortType: string;
   sortOrder: 'asc' | 'desc';
   search: string;
 }
@@ -27,6 +28,7 @@ export function useMatters(params: UseMatterParams) {
         page: params.page.toString(),
         limit: params.limit.toString(),
         sortBy: params.sortBy,
+        sortType: params.sortType,
         sortOrder: params.sortOrder,
         search: params.search,
       });
@@ -47,7 +49,7 @@ export function useMatters(params: UseMatterParams) {
     } finally {
       setLoading(false);
     }
-  }, [params.page, params.limit, params.sortBy, params.sortOrder, params.search]);
+  }, [params.page, params.limit, params.sortBy, params.sortType, params.sortOrder, params.search]);
 
   useEffect(() => {
     fetchMatters();

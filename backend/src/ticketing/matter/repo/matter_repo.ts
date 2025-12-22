@@ -1,5 +1,5 @@
 import pool from '../../../db/pool.js';
-import { Matter, MatterListParams, FieldValue, UserValue, CurrencyValue, StatusValue } from '../../types.js';
+import { Matter, MatterListParams, FieldValue, UserValue, CurrencyValue, StatusValue, FIELD_TYPE_NAME } from '../../types.js';
 import logger from '../../../utils/logger.js';
 import { PoolClient } from 'pg';
 
@@ -27,7 +27,7 @@ export class MatterRepo {
    * - Use connection pooling effectively
    */
   async getMatters(params: MatterListParams) {
-    const { page = 1, limit = 25, sortBy = 'created_at', sortOrder = 'desc' } = params;
+    const { page = 1, limit = 25, sortBy = 'created_at', sortType = 'date', sortOrder = 'desc' } = params;
     const offset = (page - 1) * limit;
 
     const client = await pool.connect();
@@ -36,16 +36,32 @@ export class MatterRepo {
       // TODO: Implement search condition
       // Currently search is not implemented - add ILIKE queries with pg_trgm
       const searchCondition = '';
-      const queryParams: (string | number)[] = [];
-      const paramIndex = 1;
 
-      // Determine sort column
-      let orderByClause = 'tt.created_at DESC';
+      //Start the query params here. We'll add and remove as we go.
+      const queryParams: (string | number)[] = [];
+      let paramIndex = 0;
+      let ticketFieldJoinPart = '';
+      
+      let _sortType = sortType;
       if (sortBy === 'created_at') {
-        orderByClause = `tt.created_at ${sortOrder.toUpperCase()}`;
-      } else if (sortBy === 'updated_at') {
-        orderByClause = `tt.updated_at ${sortOrder.toUpperCase()}`;
+        _sortType ='created_at';
       }
+      //Do we need updated_at?
+      else if (sortBy === 'resolution_time') {
+        _sortType ='resolution_time';
+      }
+      else if (sortBy === 'sla') {
+        _sortType ='sla';
+      }
+      //Anything else and we'll need to use the sortBy and join it.
+      else {
+        ticketFieldJoinPart = `AND ttfv.ticket_field_id = $${++paramIndex}`;
+        queryParams.push(sortBy);
+      }
+
+      const sortColumn = this._getSortColumn(_sortType);
+      const sortJoin = this._getSortJoin(_sortType);
+      const sortSelect = this._getSortSelect(_sortType);
 
       // Get total count
       const countQuery = `
@@ -55,12 +71,13 @@ export class MatterRepo {
         WHERE 1=1 ${searchCondition}
       `;
       
-      const countResult = await client.query(countQuery, queryParams);
+      const countResult = await client.query(countQuery, []);//This doesn't have params for task 2.
       const total = parseInt(countResult.rows[0].total);
 
       // Get matters
       const mattersQuery = `
-        SELECT DISTINCT tt.id, tt.board_id, tt.created_at, tt.updated_at,
+        SELECT DISTINCT tt.id, tt.board_id,
+          ${sortSelect},
           (   SELECT tcth.transitioned_at
             FROM ticketing_cycle_time_histories AS tcth
             WHERE ticket_id = tt.id
@@ -75,10 +92,14 @@ export class MatterRepo {
           ) AS last_transitioned
         FROM ticketing_ticket tt
         LEFT JOIN ticketing_ticket_field_value ttfv ON tt.id = ttfv.ticket_id
+          ${ticketFieldJoinPart}
+        ${sortJoin}
         WHERE 1=1 ${searchCondition}
-        ORDER BY ${orderByClause}
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+        ORDER BY ${sortColumn} ${sortOrder.toUpperCase()} NULLS LAST
+        LIMIT $${++paramIndex} OFFSET $${++paramIndex}
       `;
+
+      console.log('mattersQuery',mattersQuery);
       
       queryParams.push(limit, offset);
       const mattersResult = await client.query(mattersQuery, queryParams);
@@ -103,6 +124,77 @@ export class MatterRepo {
       return { matters, total };
     } finally {
       client.release();
+    }
+  }
+  
+  protected _getSortColumn(sortType: string): string {
+    switch (sortType) {
+      case 'created_at': return 'tt.created_at';
+      case 'text':
+      case 'number':
+      case 'date':
+      case 'boolean':
+      case 'currency':
+      case 'status':
+      case 'select':
+      case 'user':
+      case 'resolution_time':
+      case 'sla':
+      default: return 'sort_value';
+    }
+  }
+
+  protected _getSortJoin(sortType: string): string {
+    switch (sortType) {
+      case 'status': return 'LEFT JOIN ticketing_field_status_options AS tfso ON ttfv.status_reference_value_uuid = tfso.id'; // For Status
+      case 'select': return 'LEFT JOIN ticketing_field_options AS tfo ON ttfv.select_reference_value_uuid = tfo.id'; // For Priorty
+      case 'user': return 'LEFT JOIN users AS u ON ttfv.user_value = u.id';
+      default: return '';
+    }
+  }
+
+  protected _getSortSelect(sortType: string): string {
+    switch (sortType) {
+      case 'created_at': return 'tt.created_at AS sort_value';
+      //Spec for this says to use string_value - but subject is text and is found in text_value. So we can support both.
+      case 'text': return 'COALESCE(ttfv.text_value, ttfv.string_value) AS sort_value';
+      case 'number': return 'ttfv.number_value AS sort_value';
+      case 'date': return 'ttfv.date_value AS sort_value';
+      case 'boolean': return 'ttfv.boolean_value AS sort_value';
+      case 'currency': return "(ttfv.currency_value->>'amount')::numeric AS sort_value";
+      case 'status': return 'tfso.sequence AS sort_value';
+      case 'select': return 'tfo.sequence AS sort_value';
+      case 'user': return 'u.last_name AS sort_value';
+      // This is wrong. Done items are showing in the wrong order.
+      // This requries working out a set of conditional logic to query if the record is done.
+      // Then 2 different calulations depending on that.
+      // This works BUT IT IS VERY SLOW! Need to brainstorm a better solution!
+      case 'resolution_time': return `
+        CASE 
+          WHEN (SELECT tfsg.name 
+                FROM ticketing_cycle_time_histories tcth
+                JOIN ticketing_field_status_options tfso ON tcth.to_status_id = tfso.id
+                JOIN ticketing_field_status_groups tfsg ON tfso.group_id = tfsg.id
+                WHERE tcth.ticket_id = tt.id 
+                ORDER BY tcth.transitioned_at DESC LIMIT 1) = 'Done'
+          THEN 
+            (SELECT tcth.transitioned_at FROM ticketing_cycle_time_histories AS tcth 
+            WHERE ticket_id = tt.id ORDER BY transitioned_at DESC LIMIT 1)
+            -
+            (SELECT tcth.transitioned_at FROM ticketing_cycle_time_histories AS tcth 
+            WHERE ticket_id = tt.id ORDER BY transitioned_at ASC LIMIT 1)
+          ELSE 
+            NOW()
+            -
+            (SELECT tcth.transitioned_at FROM ticketing_cycle_time_histories AS tcth 
+            WHERE ticket_id = tt.id ORDER BY transitioned_at ASC LIMIT 1)
+        END AS sort_value
+      `;
+      // There is a limiatation here. It requires logic that is embedded in the cycle time service.
+      // I could hardcode the logic here and use a CASE, WHEN, ELSE condition.
+      // But I feel this isn't a good place for this logic.
+      case 'sla': return '1 AS sort_value';
+      default: return '';
     }
   }
 
@@ -198,7 +290,7 @@ export class MatterRepo {
           break;
         case 'boolean':
           value = row.boolean_value;
-          displayValue = value ? '✓' : '✗';
+          displayValue = value ? '✓': '✗';
           break;
         case 'currency':
           value = row.currency_value as CurrencyValue;

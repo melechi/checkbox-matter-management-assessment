@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useMatters } from './hooks/useMatters';
 import { MatterTable } from './components/MatterTable';
 import { Pagination } from './components/Pagination';
+import { FIELD_NAMES } from './types/matter';
 
 function App() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [sortBy, setSortBy] = useState('created_at');
+  const [sortType, setSortType] = useState('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [search] = useState(''); // TODO: Implement search state management
 
@@ -14,15 +16,41 @@ function App() {
     page,
     limit,
     sortBy,
+    sortType,
     sortOrder,
     search,
   });
 
   const handleSort = (column: string) => {
-    if (sortBy === column) {
+
+    let _column = column;
+    if (column === 'created_at' || column === 'updated_at') {
+      setSortBy(column);
+      setSortType('date');
+      return;
+    } else if (column === FIELD_NAMES.RESOLUTION_TIME) {
+      setSortBy('resolution_time');
+      setSortType('resolution_time');
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      return;
+    } else if (column === FIELD_NAMES.SLA) {
+      setSortBy('sla');
+      setSortType('sla');
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      return;
+    }
+    if (data.length && data[0].fields) {
+      for (const [key, value] of Object.entries(data[0].fields)) {
+          if (key === column) {
+            _column = value.fieldId;
+            setSortBy(value.fieldId);
+            setSortType(value.fieldType);
+          }
+      }
+    }
+    if (sortBy === _column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortBy(column);
       setSortOrder('asc');
     }
   };
