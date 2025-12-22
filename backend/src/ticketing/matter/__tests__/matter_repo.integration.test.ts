@@ -16,11 +16,12 @@ let app: Express;
 let request: typeof import('supertest').default;
 let subjectFieldId: string;
 let contractValueFieldId: string;
-let statusFieldId: string;
-let priorityFieldId: string;
-let assignedToFieldId: string;
-let caseNumberFieldId: string;
-let dueDateFieldId: string;
+// !!For furture tests.
+// let statusFieldId: string;
+// let priorityFieldId: string;
+// let assignedToFieldId: string;
+// let caseNumberFieldId: string;
+// let dueDateFieldId: string;
 
 // Helper to skip test if database is not available
 const itIfDb = (name: string, fn: () => Promise<void>) => {
@@ -55,21 +56,22 @@ describe('GET /api/v1/matters sorting integration tests', () => {
                     case 'Contract Value':
                         contractValueFieldId = row.id;
                         break;
-                    case 'Status':
-                        statusFieldId = row.id;
-                        break;
-                    case 'Priority':
-                        priorityFieldId = row.id;
-                        break;
-                    case 'Assigned To':
-                        assignedToFieldId = row.id;
-                        break;
-                    case 'Case Number':
-                        caseNumberFieldId = row.id;
-                        break;
-                    case 'Due Date':
-                        dueDateFieldId = row.id;
-                        break;
+                    // !!For furture tests.
+                    // case 'Status':
+                    //     statusFieldId = row.id;
+                    //     break;
+                    // case 'Priority':
+                    //     priorityFieldId = row.id;
+                    //     break;
+                    // case 'Assigned To':
+                    //     assignedToFieldId = row.id;
+                    //     break;
+                    // case 'Case Number':
+                    //     caseNumberFieldId = row.id;
+                    //     break;
+                    // case 'Due Date':
+                    //     dueDateFieldId = row.id;
+                    //     break;
                 }
             }
 
