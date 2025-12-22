@@ -1,6 +1,6 @@
 import { describe, beforeAll, afterAll, it, expect } from 'vitest';
 import type { Express } from 'express';
-import pool from '../../../../db/pool.js';
+import pool from '../../../db/pool.js';
 
 /**
  * Integration tests for GET /api/v1/matters sorting functionality
@@ -77,7 +77,7 @@ describe('GET /api/v1/matters sorting integration tests', () => {
             databaseAvailable = true;
 
             // Only import app and supertest if database is available
-            const appModule = await import('../../../../app.js');
+            const appModule = await import('../../../app.js');
             app = appModule.default;
             const supertestModule = await import('supertest');
             request = supertestModule.default;
@@ -216,4 +216,9 @@ describe('GET /api/v1/matters sorting integration tests', () => {
     });
 
     // TODO: All the other test cases for this API (Other sorting columns, invalid columns, invalid sort configurations etc.)
+
+
+    // Specific tests for search.
+    
+
 });

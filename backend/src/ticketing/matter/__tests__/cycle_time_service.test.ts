@@ -1,6 +1,6 @@
 import { describe, beforeEach, it, expect } from 'vitest';
-import { CycleTimeService } from '../cycle_time_service.js';
-import { MATTER_STATUS_GROUP_NAME, MatterStatusGroupName, SLAStatus } from '../../../types.js';
+import { CycleTimeService } from '../service/cycle_time_service.js';
+import { MATTER_STATUS_GROUP_NAME, MatterStatusGroupName, SLAStatus } from '../../types.js';
 
 class TestCycleTimeService extends CycleTimeService {
     public testFormatDuration(_durationMs: number, _isInProgress: boolean):string {

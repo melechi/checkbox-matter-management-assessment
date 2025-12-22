@@ -140,13 +140,24 @@ Spec for sorting text says to use string_value - but subject is text and is foun
 Note that while Contract Value sorting is accurate in terms of number sorting. Its not in terms of value sorting. The difference in currency would change the sort order.
 
 
+# Task 3
+
+For this I started with the frontend as there was a bit of work invovled to create a SearchBar component and then integrate it. I noted in previous tasks that the useMatter hook already has the search param being sent to the server. So for the beginning of this task I was simply hooking into that existing structure.
+
+
+For the search component. I used AI to generate the SVG icons. Usually I would store these in an Icon component, or use existing Hero Icons.
+
+I also used it to get an understanding of pg_trgm since I had not used it before. The examples it provided allowed me to construct the search query.
+
+## Issue
+
+Searching for Cycle Time and SLA for this implementation isn't possible due to "production readiness" requirement. Trying to bolt it into the search query would be very inefficient (you can see issues with this in task 2). It also would not pass the "Handle 10,000+ records efficiently" requirement. I think this data should be pre-calculated whenever the status of a record changes. Then they could be stored in their own columns which would be easily searchable and sortable.
+
 # Things I would improve.
 
 1) The frontend "Fields" don't have great type safety. Long term, I would think about pulling fields from the backend and using them in a safer way than relying on fixed text or constants.
 
-2) 
-
-
+2) Use URI params for search. Better state, easier to navigate, can share full search queries.
 
 
 # My General Notes

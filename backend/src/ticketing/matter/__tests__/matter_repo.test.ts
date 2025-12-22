@@ -1,5 +1,5 @@
 import { describe, beforeEach, it, expect } from 'vitest';
-import { MatterRepo } from '../matter_repo.js';
+import { MatterRepo } from '../repo/matter_repo.js';
 
 class TestMatterRepo extends MatterRepo {
     public testGetSortColumn(sortType: string): string {
@@ -12,6 +12,10 @@ class TestMatterRepo extends MatterRepo {
 
     public testGetSortSelect(sortType: string): string {
         return this._getSortSelect(sortType);
+    }
+
+    public testBuildSearchCondition(paramIndex: number): string {
+        return this._buildSearchCondition(paramIndex);
     }
 }
 
@@ -214,4 +218,17 @@ describe('MatterRepo', () => {
             expect(result).toBe('');
         });
     });
+
+    describe('_buildSearchCondition', () => {
+        it('returns placeholder $1 for search query', () => {
+            const queryPart = repo.testBuildSearchCondition(1);
+            expect(queryPart).toContain('$1');
+        });
+        it('returns placeholder $5 for search query', () => {
+            const queryPart = repo.testBuildSearchCondition(5);
+            expect(queryPart).toContain('$5');
+        });
+    });
+
+    
 });

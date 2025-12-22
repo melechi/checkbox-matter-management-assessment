@@ -159,6 +159,7 @@ CREATE INDEX idx_cycle_time_histories_to_status ON ticketing_cycle_time_historie
 -- Indexes for text search
 CREATE INDEX idx_ticket_field_value_text_trgm ON ticketing_ticket_field_value USING gin (text_value gin_trgm_ops);
 CREATE INDEX idx_ticket_field_value_string_trgm ON ticketing_ticket_field_value USING gin (string_value gin_trgm_ops);
+CREATE INDEX idx_users_name_trgm ON users USING GIN ((first_name || ' ' || last_name) gin_trgm_ops);
 
 -- Indexes for sorting and filtering
 CREATE INDEX idx_ticket_field_value_number ON ticketing_ticket_field_value(number_value);

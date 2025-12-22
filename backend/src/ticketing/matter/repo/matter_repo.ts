@@ -27,7 +27,14 @@ export class MatterRepo {
    * - Use connection pooling effectively
    */
   async getMatters(params: MatterListParams) {
-    const { page = 1, limit = 25, sortBy = 'created_at', sortType = 'date', sortOrder = 'desc' } = params;
+    const {
+      page = 1,
+      limit = 25,
+      sortBy = 'created_at',
+      sortType = 'date',
+      sortOrder = 'desc',
+      search = ''
+    } = params;
     const offset = (page - 1) * limit;
 
     const client = await pool.connect();
@@ -35,12 +42,24 @@ export class MatterRepo {
     try {
       // TODO: Implement search condition
       // Currently search is not implemented - add ILIKE queries with pg_trgm
-      const searchCondition = '';
 
       //Start the query params here. We'll add and remove as we go.
       const queryParams: (string | number)[] = [];
+      const countQueryParams: (string | number)[] = [];
       let paramIndex = 0;
       let ticketFieldJoinPart = '';
+      let searchCondition = '';
+
+      // Handle search.
+      if (search && search.trim()) {
+        searchCondition = this._buildSearchCondition(++paramIndex);
+        const term = `%${search.trim()}%`;
+        queryParams.push(term);
+        countQueryParams.push(term);
+      }
+
+      console.log('searchCondition',searchCondition);
+      
       
       let _sortType = sortType;
       if (sortBy === 'created_at') {
@@ -71,7 +90,7 @@ export class MatterRepo {
         WHERE 1=1 ${searchCondition}
       `;
       
-      const countResult = await client.query(countQuery, []);//This doesn't have params for task 2.
+      const countResult = await client.query(countQuery, countQueryParams);
       const total = parseInt(countResult.rows[0].total);
 
       // Get matters
@@ -196,6 +215,36 @@ export class MatterRepo {
       case 'sla': return '1 AS sort_value';
       default: return '';
     }
+  }
+
+  protected _buildSearchCondition(paramIndex: number) {
+    return `
+      AND tt.id IN (
+        SELECT DISTINCT ttfv_search.ticket_id
+        FROM ticketing_ticket_field_value ttfv_search
+        LEFT JOIN users u_search ON ttfv_search.user_value = u_search.id
+        -- Alias this next join as tfo_search for readability.
+        LEFT JOIN ticketing_field_options tfo_search ON ttfv_search.select_reference_value_uuid = tfo_search.id
+        LEFT JOIN ticketing_field_status_options tfso_search ON ttfv_search.status_reference_value_uuid = tfso_search.id
+        WHERE 
+          -- Text fields
+          ttfv_search.text_value ILIKE $${paramIndex}
+          OR ttfv_search.string_value ILIKE $${paramIndex}
+          -- Numbers (cast to text - cast to text for text search)
+          OR ttfv_search.number_value::text ILIKE $${paramIndex}
+          -- Currency (search amount - cast to text for text search)
+          OR (ttfv_search.currency_value->>'amount')::text ILIKE $${paramIndex}
+          -- User names
+          OR CONCAT(u_search.first_name, ' ', u_search.last_name) ILIKE $${paramIndex}
+          -- Select/Priority labels
+          OR tfo_search.label ILIKE $${paramIndex}
+          -- Status labels
+          OR tfso_search.label ILIKE $${paramIndex}
+          -- Cycle Time & SLA
+          -- Cannot do in this implementation. See developer notes.
+          
+      )
+    `;
   }
 
   /**
