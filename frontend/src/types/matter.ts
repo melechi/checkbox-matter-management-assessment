@@ -79,3 +79,15 @@ export interface StatusOption {
   sequence: number;
 }
 
+export const FIELD_NAMES = {
+  SUBJECT: 'subject',
+  CASE_NUMBER: 'Case Number',
+  STATUS: 'Status',
+  ASSIGNED_TO: 'Assigned To',
+  PRIORITY: 'Priority',
+  CONTRACT_VALUE: 'Contract Value',
+  DUE_DATE: 'Due Date',
+  URGENT: 'Urgent',
+  RESOLUTION_TIME: 'Resolution Time',
+  SLA: 'SLA',
+} as const;

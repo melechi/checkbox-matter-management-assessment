@@ -1,4 +1,4 @@
-import { Matter, CurrencyValue } from '../types/matter';
+import { Matter, CurrencyValue, FIELD_NAMES } from '../types/matter';
 import {
   formatCurrency,
   formatDate,
@@ -14,18 +14,7 @@ interface MatterTableProps {
   onSort: (column: string) => void;
 }
 
-const FIELD_NAMES = {
-  SUBJECT: 'subject',
-  CASE_NUMBER: 'Case Number',
-  STATUS: 'Status',
-  ASSIGNED_TO: 'Assigned To',
-  PRIORITY: 'Priority',
-  CONTRACT_VALUE: 'Contract Value',
-  DUE_DATE: 'Due Date',
-  URGENT: 'Urgent',
-  RESOLUTION_TIME: 'Resolution Time',
-  SLA: 'SLA',
-} as const;
+
 
 export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableProps) {
   const renderSortIcon = (column: string) => {
@@ -127,40 +116,76 @@ export function MatterTable({ matters, sortBy, sortOrder, onSort }: MatterTableP
         <thead className="bg-gray-50">
           <tr>
             <th
-              onClick={() => onSort('subject')}
+              onClick={() => onSort(FIELD_NAMES.SUBJECT)}
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
             >
               <div className="flex items-center gap-1">
                 {FIELD_NAMES.SUBJECT}
-                {renderSortIcon('subject')}
+                {renderSortIcon(FIELD_NAMES.SUBJECT)}
               </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.CASE_NUMBER}
+            <th onClick={() => onSort(FIELD_NAMES.CASE_NUMBER)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.CASE_NUMBER}
+                {renderSortIcon(FIELD_NAMES.CASE_NUMBER)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.STATUS}
+            <th onClick={() => onSort(FIELD_NAMES.STATUS)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.STATUS}
+                {renderSortIcon(FIELD_NAMES.STATUS)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.ASSIGNED_TO}
+            <th onClick={() => onSort(FIELD_NAMES.ASSIGNED_TO)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.ASSIGNED_TO}
+                {renderSortIcon(FIELD_NAMES.ASSIGNED_TO)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.PRIORITY}
+            <th onClick={() => onSort(FIELD_NAMES.PRIORITY)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.PRIORITY}
+                {renderSortIcon(FIELD_NAMES.PRIORITY)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.CONTRACT_VALUE}
+            <th onClick={() => onSort(FIELD_NAMES.CONTRACT_VALUE)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.CONTRACT_VALUE}
+                {renderSortIcon(FIELD_NAMES.CONTRACT_VALUE)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.DUE_DATE}
+            <th onClick={() => onSort(FIELD_NAMES.DUE_DATE)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.DUE_DATE}
+                {renderSortIcon(FIELD_NAMES.DUE_DATE)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.URGENT}
+            <th onClick={() => onSort(FIELD_NAMES.URGENT)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.URGENT}
+                {renderSortIcon(FIELD_NAMES.URGENT)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.RESOLUTION_TIME}
+            <th onClick={() => onSort(FIELD_NAMES.RESOLUTION_TIME)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.RESOLUTION_TIME}
+                {renderSortIcon(FIELD_NAMES.RESOLUTION_TIME)}
+              </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {FIELD_NAMES.SLA}
+            <th onClick={() => onSort(FIELD_NAMES.SLA)}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+              <div className="flex items-center gap-1">
+                {FIELD_NAMES.SLA}
+                {renderSortIcon(FIELD_NAMES.SLA)}
+              </div>
             </th>
           </tr>
         </thead>

@@ -120,6 +120,35 @@ The final query without the joins worked. However, when I got to thinking about 
 I would consider moving the cycle time calculations to the client-side which would. This would solve the issue of stale Resolution Time being displayed on the frontend should a CDN be used. We could set a short TTL of around 60s and use it with Cloudflare which would significantly reduce the load on the database. Combine this with cache invalidation on status changes and it could be a solid solution.
 
 
+
+# Task 2
+
+This task is challanging because I need to sort columns with the EAV pattern which is quite complex.
+I started by figuring out what I needed to sort by. I didn't want to hardcode UUIDs in the backend, so I figured since the frontend already has this information, along with the data type, that information could be passed to the backend to then query the database based on those fields and data type.
+
+From there it was a matter of matching that up against correct joins and columns in the backend.
+The frontend frontend sorting functionality as that was quite simple to implement.
+
+I had a bit of difficulty with sorting Resolution Time and SLA. See the comments in the matter_repo.ts file.
+
+Lastly tests are partially implemented. I feel you can get the gist of what Iw as doing and felt I needed to move on from this task onto the final task.
+
+## Some Notes
+
+Spec for sorting text says to use string_value - but subject is text and is found in text_value. I've used COALESCE to handle both cases.
+
+Note that while Contract Value sorting is accurate in terms of number sorting. Its not in terms of value sorting. The difference in currency would change the sort order.
+
+
+# Things I would improve.
+
+1) The frontend "Fields" don't have great type safety. Long term, I would think about pulling fields from the backend and using them in a safer way than relying on fixed text or constants.
+
+2) 
+
+
+
+
 # My General Notes
 
 
@@ -132,11 +161,3 @@ Backend Dockerfile builds a nodejs (express) service.
 Dependencies are in place to ensure services report back as healthy (see HEALTHCHECK in Dockerfile or healthcheck block in docker-compose).
 
 Lastly there is a postgres (database) service with an additional seed service
-
-
-# Things I would improve.
-
-1) The frontend "Fields" don't have great type safety. Long term, I would think about pulling fields from the backend and using them in a safer way than relying on fixed text or constants.
-
-2) 
-

@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 import { MatterService } from '../service/matter_service.js';
 import { z } from 'zod';
 import logger from '../../../utils/logger.js';
+import { FIELD_TYPE_VALUES } from '../../types.js';
 
 const querySchema = z.object({
   page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 1)),
   limit: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 25)),
   sortBy: z.string().optional().default('created_at'),
+  sortType: z.enum(FIELD_TYPE_VALUES).optional().default('date'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
   search: z.string().optional().default(''),
 });

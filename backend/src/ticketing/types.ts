@@ -36,7 +36,22 @@ export interface StatusValue {
   groupName: string;
 }
 
-export type FieldType = 'text' | 'number' | 'select' | 'date' | 'currency' | 'boolean' | 'status' | 'user';
+export const FIELD_TYPE_NAME = {
+  TEXT: 'text',
+  NUMBER: 'number',
+  SELECT: 'select',
+  DATE: 'date',
+  CURRENCY: 'currency',
+  BOOLEAN: 'boolean',
+  STATUS: 'status',
+  USER: 'user',
+  RESOLUTION_TIME: 'resolution_time',
+  SLA: 'sla'
+} as const;
+
+export const FIELD_TYPE_VALUES = Object.values(FIELD_TYPE_NAME) as [FieldType, ...FieldType[]];
+
+export type FieldType = typeof FIELD_TYPE_NAME[keyof typeof FIELD_TYPE_NAME];
 
 export interface CycleTime {
   resolutionTimeMs: number | null;
@@ -66,6 +81,7 @@ export interface MatterListParams {
   page?: number;
   limit?: number;
   sortBy?: string;
+  sortType?: string;
   sortOrder?: 'asc' | 'desc';
   search?: string;
 }
