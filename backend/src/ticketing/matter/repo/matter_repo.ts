@@ -92,7 +92,7 @@ export class MatterRepo {
 
       // Get matters
       const mattersQuery = `
-        SELECT DISTINCT tt.id, tt.board_id,
+        SELECT DISTINCT tt.id, tt.board_id, tt.created_at, tt.updated_at,
           ${sortSelect},
           (   SELECT tcth.transitioned_at
             FROM ticketing_cycle_time_histories AS tcth
